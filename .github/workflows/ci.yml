@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +23,7 @@ jobs:
       - name: Test
         run: swift test
 
-      # 静态检查（advisory，不阻断）：macos-14 不预装这两个工具，需现场 brew 安装；
+      # 静态检查（advisory，不阻断）：runner 不预装这两个工具，需现场 brew 安装；
       # 且历史告警尚未清零（第三方 Vendor/ 也在扫描范围内），失败只作为提示。
       # brew 失败时用 || echo 兜底（lint.sh 检测到工具缺失会跳过并返回 0）；
       # 等 .swiftlint.yml 排除 Vendor/ 并清零 error 后，再考虑去掉 continue-on-error 变硬门禁。
