@@ -35,7 +35,8 @@ struct InlineCodeAndQuoteTests {
         if br.location != NSNotFound {
             let attributes = storage.attributes(at: br.location, effectiveRange: nil)
             let font = attributes[.font] as? NSFont
-            #expect(font?.fontName == "SFMono-Regular", "代码内 <br> 实际字体：\(font?.fontName ?? "nil")")
+            #expect(font?.fontName.contains("Mono") == true,
+                    "代码内 <br> 实际字体：\(font?.fontName ?? "nil")")
             #expect(attributes[.backgroundColor] != nil, "行内代码应有灰底")
         }
     }

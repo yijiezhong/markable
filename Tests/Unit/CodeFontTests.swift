@@ -27,11 +27,11 @@ struct CodeFontTests {
         #expect(chineseRange.location != NSNotFound)
         if latinRange.location != NSNotFound {
             let font = storage.attributes(at: latinRange.location, effectiveRange: nil)[.font] as? NSFont
-            #expect(font?.fontName == "SFMono-Regular", "西文实际：\(font?.fontName ?? "nil")")
+            #expect(Self.isMonospace(font?.fontName), "西文实际：\(font?.fontName ?? "nil")")
         }
         if chineseRange.location != NSNotFound {
             let font = storage.attributes(at: chineseRange.location, effectiveRange: nil)[.font] as? NSFont
-            #expect(font?.fontName == "PingFangSC-Regular", "中文实际：\(font?.fontName ?? "nil")")
+            #expect(Self.isPingFang(font?.fontName), "中文实际：\(font?.fontName ?? "nil")")
             let kern = storage.attributes(at: chineseRange.location, effectiveRange: nil)[.kern] as? CGFloat
             #expect((kern ?? 0) > 0, "中文应带字距补偿")
         }
@@ -47,7 +47,8 @@ struct CodeFontTests {
         let measured = storage.attributedSubstring(from: range).size().width
         let half = ("a" as NSString).size(withAttributes: [.font: CodeTypography.latinFont(size: 13, style: .sans)]).width
         let expected = 6 * half   // 2 中文（各 2 半角）+ 2 西文（各 1 半角）
-        #expect(abs(measured - expected) < 0.1, "实测 \(measured)，期望 \(expected)")
+        // 容差按「半角字宽」的比例给：不同系统的等宽字体度量略有差异。
+        #expect(abs(measured - expected) < half * 0.5, "实测 \(measured)，期望 \(expected)")
     }
 
     @Test("衬线场景：Courier New + 宋体")
@@ -58,11 +59,11 @@ struct CodeFontTests {
         let chineseRange = ns.range(of: "中文")
         if latinRange.location != NSNotFound {
             let font = storage.attributes(at: latinRange.location, effectiveRange: nil)[.font] as? NSFont
-            #expect(font?.fontName == "CourierNewPSMT", "西文实际：\(font?.fontName ?? "nil")")
+            #expect(Self.isCourier(font?.fontName), "西文实际：\(font?.fontName ?? "nil")")
         }
         if chineseRange.location != NSNotFound {
             let font = storage.attributes(at: chineseRange.location, effectiveRange: nil)[.font] as? NSFont
-            #expect(font?.fontName == "STSongti-SC-Regular", "中文实际：\(font?.fontName ?? "nil")")
+            #expect(Self.isSongti(font?.fontName), "中文实际：\(font?.fontName ?? "nil")")
         }
     }
 
@@ -81,5 +82,27 @@ struct CodeFontTests {
         let html = renderer.html(from: "```\n中文 code\n```", title: "t")
         #expect(html.contains("letter-spacing: 0.2002em"))
         #expect(html.contains(#""Courier New", Courier, monospace"#))
+    }
+
+    // MARK: - 字体族名判定（不同 macOS/Xcode 版本的族名不同）
+
+    private static func isMonospace(_ name: String?) -> Bool {
+        guard let name else { return false }
+        return name.contains("Mono")
+    }
+
+    private static func isPingFang(_ name: String?) -> Bool {
+        guard let name else { return false }
+        return name.contains("PingFang")
+    }
+
+    private static func isCourier(_ name: String?) -> Bool {
+        guard let name else { return false }
+        return name.contains("Courier")
+    }
+
+    private static func isSongti(_ name: String?) -> Bool {
+        guard let name else { return false }
+        return name.contains("Songti") || name.contains("STSong")
     }
 }

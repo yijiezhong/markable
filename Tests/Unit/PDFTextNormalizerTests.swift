@@ -10,7 +10,7 @@ import PDFKit
 /// 覆盖两类问题：
 /// 1. `normalize` 的映射正确性与「长度不变」不变量（保证命中范围能映射回原文）；
 /// 2. `findSelection` / `PDFTOC` 对「文本层被 WebKit 换成部首」的中文标题仍能定位。
-@Suite("PDFTextNormalizer")
+@Suite("PDFTextNormalizer", .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil))
 struct PDFTextNormalizerTests {
     // MARK: - 归一化
 

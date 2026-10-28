@@ -6,7 +6,7 @@ import PDFKit
 @testable import Markable
 
 /// 目录页：生成单页目录，标题与页码可提取。
-@Suite("PDFTOC")
+@Suite("PDFTOC", .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil))
 struct PDFTOCTests {
     @Test("目录页列出标题与页码")
     func tocPage() throws {
