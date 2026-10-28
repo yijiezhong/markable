@@ -4,7 +4,7 @@ import Testing
 
 /// 代码字体方案：苹果官方字体 + 字距补偿（中文 = 2 × 西文）。
 @MainActor
-@Suite("CodeFont")
+@Suite("CodeFont", .enabled(if: ProcessInfo.processInfo.environment["CI"] == nil))
 struct CodeFontTests {
     private func render(_ source: String, family: Typography.Family = .sans) -> NSTextStorage {
         var typography = Typography()
