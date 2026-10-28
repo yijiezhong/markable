@@ -43,3 +43,4 @@ excluded:
   - DerivedData
   - Package.swift
   - Vendor
+  - dist
