@@ -1,5 +1,8 @@
 # Markable
 
+[![CI](https://github.com/yijiezhong/markable/actions/workflows/ci.yml/badge.svg)](https://github.com/yijiezhong/markable/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 纯本地的 macOS Markdown 阅读器（原生 TextKit 渲染，只读、不联网）。
 
 > 2026-10-23 起作为独立仓库维护。
