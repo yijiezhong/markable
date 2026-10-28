@@ -1,0 +1,45 @@
+# SwiftLint 配置（2026-10-24 校准：排除第三方、对齐项目实际规模）
+#
+# 校准依据（swiftlint 0.65.1 实测）：
+# - 未排除 Vendor/ 时有 1772 条，其中 1254 条来自第三方 swift-mermaid（升级会被覆盖，不改）；
+# - identifier_name 的 869 条 error 几乎全是 1 字符局部变量（`i`/`l`/`d`），是默认阈值与既有风格
+#   不匹配，不是缺陷：把 error 阈值降到 1（1 字符只算 warning）；
+# - 复杂度 / 函数体 / 类型体 / 文件长度按项目实际规模放宽到「超出才提示重构」的量级，
+#   避免把千行渲染核心当成每提交都红的错误。
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - first_where
+  - force_unwrapping
+  - redundant_nil_coalescing
+
+line_length:
+  warning: 120
+  error: 160
+
+identifier_name:
+  min_length:
+    warning: 2
+    error: 1
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+function_body_length:
+  warning: 80
+  error: 150
+
+type_body_length:
+  warning: 400
+  error: 800
+
+file_length:
+  warning: 800
+  error: 2000
+
+excluded:
+  - .build
+  - DerivedData
+  - Package.swift
+  - Vendor

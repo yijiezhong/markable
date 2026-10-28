@@ -1,0 +1,24 @@
+name: 功能建议
+description: 希望 Markable 支持的能力
+labels: [enhancement]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 你在读什么文档、想完成什么
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的行为
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: 设计约束确认
+      options:
+        - label: 该建议不需要联网（Markable 完全离线）
+        - label: 该建议不需要修改源文件（Markable 只读）

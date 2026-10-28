@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Markable 帮助</title>
+<style>
+  :root {
+    --fg: #1f2329; --fg2: #6b7280; --bg: #ffffff; --card: #f6f7f9;
+    --line: #e3e5e8; --accent: #1d4ed8; --code: #f0f1f3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e6e6e8; --fg2: #9ca3af; --bg: #1c1c1e; --card: #262629;
+      --line: #3a3a3d; --accent: #7aa2ff; --code: #2a2a2d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 40px 64px;
+    font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+    font-size: 13.5px; line-height: 1.75; color: var(--fg); background: var(--bg);
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 25px; margin: 0 0 6px; letter-spacing: .2px; }
+  .sub { color: var(--fg2); margin: 0 0 26px; }
+  h2 {
+    font-size: 17px; margin: 34px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { font-size: 14px; margin: 20px 0 6px; }
+  p, li { color: var(--fg); }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin: 3px 0; }
+  code {
+    font-family: "SF Mono", Menlo, monospace; font-size: 12px;
+    background: var(--code); padding: 1.5px 5px; border-radius: 4px;
+  }
+  kbd {
+    font-family: -apple-system, sans-serif; font-size: 11.5px;
+    background: var(--card); border: 1px solid var(--line);
+    border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; margin: 0 1px;
+    white-space: nowrap;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 4px; }
+  th, td { text-align: left; padding: 7px 10px; border: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--card); font-weight: 600; }
+  td:first-child { white-space: nowrap; }
+  .nav { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 0 0 8px; }
+  .nav a { color: var(--accent); text-decoration: none; margin-right: 14px; white-space: nowrap; }
+  .note { border-left: 3px solid var(--accent); background: var(--card); padding: 8px 14px; border-radius: 0 6px 6px 0; margin: 12px 0; color: var(--fg2); }
+  a { color: var(--accent); }
+  mark.hl { background: #ffe066; color: #1f2329; border-radius: 2px; }
+  mark.hl.cur { background: #ff9f0a; }
+  #noresult { color: var(--fg2); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Markable 帮助</h1>
+<p class="sub">单纯的 Markdown 阅读器 · 只读 · 完全离线</p>
+
+<div class="nav">
+  <a href="#start">开始使用</a>
+  <a href="#read">阅读</a>
+  <a href="#nav">导航</a>
+  <a href="#find">查找</a>
+  <a href="#display">显示与版式</a>
+  <a href="#copy">复制</a>
+  <a href="#export">导出</a>
+  <a href="#lint">文档体检</a>
+  <a href="#url">命令与自动化</a>
+  <a href="#keys">快捷键</a>
+  <a href="#limits">已知限制</a>
+</div>
+
+<h2 id="start">开始使用</h2>
+<ul>
+  <li><b>打开文档</b>：Finder 里双击 <code>.md</code>、把文件拖到 Dock 图标，或 <kbd>⌘O</kbd>；<kbd>⇧⌘O</kbd> 快速打开（按文件名过滤当前目录）。</li>
+  <li><b>标签页</b>：所有文档共用一个窗口，每个文件一个标签；重复打开会切到已有标签。<kbd>⌘N</kbd> 新建标签、<kbd>⌘W</kbd> 关闭当前标签。</li>
+  <li><b>只读、离线</b>：Markable 不修改文件，不发起网络请求；代码高亮、表格、公式、图表全部在本地渲染。</li>
+  <li><b>恢复</b>：下次启动自动回到上次阅读的文档与位置。</li>
+</ul>
+
+<h2 id="read">阅读</h2>
+<ul>
+  <li><b>翻屏</b>：<kbd>空格</kbd> 下一屏、<kbd>⇧空格</kbd> 上一屏（<kbd>PageDown</kbd> / <kbd>PageUp</kbd> 同效）。</li>
+  <li><b>缩放</b>：<kbd>⌘+</kbd> 放大、<kbd>⌘−</kbd> 缩小、<kbd>⌘0</kbd> 实际大小、<kbd>⌘9</kbd> 缩放至窗口大小。</li>
+  <li><b>支持的语法</b>：CommonMark + GFM（表格、任务列表、删除线、自动链接）；扩展：脚注、callout（<code>&gt; [!NOTE]</code>）、AI 标注、交叉引用、目录页、数学（KaTeX）、Mermaid 图（15 种自研渲染器 + 兜底渲染）、图片、水平线、引用内围栏代码块。</li>
+  <li><b>表格</b>：渲染为真正的网格（<code>NSTextTable</code>），列宽自适应；导出 PDF 时跨页表格会在后续页面重复表头。</li>
+  <li><b>引用</b>：整块灰底 + 左侧竖线，空行分隔的多段引用每段都有竖线；复制时竖线还原为 <code>&gt;</code>。</li>
+  <li><b>代码</b>：围栏 / 波浪线 / 撇号围栏，按语言高亮；可选行号（复制时自动剔除）。</li>
+</ul>
+
+<h2 id="nav">导航</h2>
+<ul>
+  <li><b>侧边栏</b>（<kbd>⌘J</kbd> 显示/隐藏）两个面板：
+    <ul>
+      <li><b>大纲</b> <kbd>⌘K</kbd>：标题层级，点击跳转。</li>
+      <li><b>文件</b> <kbd>⌘L</kbd>：同目录下的其它 Markdown 文件，点击打开。</li>
+    </ul>
+  </li>
+  <li><b>标题</b>：<kbd>⌘↑</kbd> / <kbd>⌘↓</kbd> 依次跳到上一个 / 下一个标题；<b>段落</b>：<kbd>⌥⌘↑</kbd> / <kbd>⌥⌘↓</kbd>，每次约前进一屏。</li>
+  <li><b>滚动</b>：<kbd>⌘↖</kbd> 顶部、<kbd>⌘↘</kbd> 底部。</li>
+</ul>
+
+<h2 id="find">查找</h2>
+<ul>
+  <li><kbd>⌘F</kbd> 文档内查找（面板里可切「区分大小写 / 整词 / 正则」）；<kbd>⌘G</kbd> / <kbd>⇧⌘G</kbd> 上下一个。</li>
+  <li><kbd>⇧⌘F</kbd> 在文件夹中查找（跨文件搜索）；<kbd>⌥⌘F</kbd> 使用系统查找面板。</li>
+  <li><kbd>⌥⌘G</kbd> 用当前所选内容查找。</li>
+</ul>
+
+<h2 id="display">显示与版式</h2>
+<ul>
+  <li><b>主题</b>与<b>版式</b>（菜单与工具栏各有一份）：主题为跟随系统 / 浅色 / 深色；版式为 6 套模板（舒适阅读、学术论文、技术文档等）。</li>
+  <li><b>字号与排版</b>菜单：字体、行距 / 段间距、自动折行、首行缩进、标题编号、代码行号。</li>
+  <li><b>页边距 / 页眉 / 页脚 / 目录页</b>：在「设置」（<kbd>⌘,</kbd>）的「导出」页里调整；纸张固定 A4。</li>
+</ul>
+
+<h2 id="copy">复制</h2>
+<p>复制（<kbd>⌘C</kbd>、右键、拖拽、服务菜单）只输出<b>可见内容</b>：</p>
+<ul>
+  <li>语法标记（<code>#</code>、<code>**</code>、反引号、链接括号、代码围栏、front matter）不会进入剪贴板；</li>
+  <li>引用竖线还原为 <code>&gt;</code>，嵌套引用保留原层数（<code>&gt; &gt;</code>）；</li>
+  <li>表格按行复制成制表符分隔（TSV），可直接粘进 Excel / Numbers / 飞书表格；</li>
+  <li>图片替换为 <code>[图片: alt]</code>，Mermaid 替换为 <code>[Mermaid: 源码摘要]</code>，公式替换为 <code>[公式]</code>；</li>
+  <li>代码行号、标题编号自动剔除。</li>
+</ul>
+
+<h2 id="export">导出</h2>
+<ul>
+  <li><b>PDF 有两条通道</b>：本机装了 <code>md2pdf</code> 时优先用它（交付级版式、书签、页码）；否则用内置 A4 分页（跨页表格重复表头、接缝单线）。</li>
+  <li>md2pdf 的版式由它自己的样式决定，<b>不读取</b>「PDF 选项」里的纸张 / 页眉页脚 / 目录页；想用自己的这些设置，在「PDF 选项」里勾选<b>强制使用内置导出</b>。</li>
+  <li><b>HTML</b>：含样式 / 纯内容两种；本地图片内联为 <code>data:</code> URI（单文件可移植，体积随图片增长），<code>javascript:</code> 等危险链接会被过滤成纯文字。</li>
+  <li><b>图片</b>：按 A4 页逐页导出 PNG。</li>
+  <li><b>批量导出</b>：对一个文件夹递归导出 PDF / HTML / PNG，失败项会在结尾汇总。</li>
+  <li><b>分享</b>：用系统分享面板分享临时 PDF。</li>
+  <li><b>入口</b>：工具栏的「导出」下拉把上面这些收在一起；页眉 / 页脚 / 目录页在「设置 → 导出」里调。</li>
+</ul>
+
+<h2 id="lint">文档体检</h2>
+<ul>
+  <li>菜单「编辑 → 文档体检」检查：未定义的链接引用、未被引用的定义、脚注引用/定义配对、标题层级跳跃等。</li>
+  <li>点击条目跳到对应行；0 处时显示「未发现问题」。</li>
+</ul>
+
+<h2 id="url">命令与自动化</h2>
+<ul>
+  <li><code>markable://open?path=/绝对路径/文档.md</code> 打开文档。</li>
+  <li><code>markable://export?path=…&amp;output=…&amp;format=pdf|html</code> 直接导出。</li>
+  <li>命令行：<code>open -a Markable 文档.md</code>。</li>
+</ul>
+
+<h2 id="keys">快捷键</h2>
+<table>
+  <tr><th>操作</th><th>快捷键</th></tr>
+  <tr><td>打开 / 快速打开</td><td><kbd>⌘O</kbd> / <kbd>⇧⌘O</kbd></td></tr>
+  <tr><td>新建 / 关闭标签</td><td><kbd>⌘N</kbd> / <kbd>⌘W</kbd></td></tr>
+  <tr><td>重新载入</td><td><kbd>⌘R</kbd></td></tr>
+  <tr><td>侧栏显示/隐藏</td><td><kbd>⌘J</kbd></td></tr>
+  <tr><td>大纲 / 文件面板</td><td><kbd>⌘K</kbd> / <kbd>⌘L</kbd></td></tr>
+  <tr><td>上/下标题</td><td><kbd>⌘↑</kbd> / <kbd>⌘↓</kbd></td></tr>
+  <tr><td>上/下段落</td><td><kbd>⌥⌘↑</kbd> / <kbd>⌥⌘↓</kbd></td></tr>
+  <tr><td>查找 / 下一个 / 上一个</td><td><kbd>⌘F</kbd> / <kbd>⌘G</kbd> / <kbd>⇧⌘G</kbd></td></tr>
+  <tr><td>跨文件查找</td><td><kbd>⇧⌘F</kbd></td></tr>
+  <tr><td>缩放 + / − / 实际大小 / 适配窗口</td><td><kbd>⌘+</kbd> / <kbd>⌘−</kbd> / <kbd>⌘0</kbd> / <kbd>⌘9</kbd></td></tr>
+  <tr><td>打印</td><td><kbd>⌘P</kbd></td></tr>
+</table>
+
+<h2 id="limits">已知限制</h2>
+<ul>
+  <li><b>Mermaid 主题</b>：<code>%%{init: {"theme": …}}%%</code> 会被解析出来，但不改变配色——渲染主路径由第三方库负责，它不提供配色注入；自研渲染器跟随系统外观。</li>
+  <li><b>md2pdf 通道的版式</b>：纸张 / 页边距 / 页眉页脚 / 目录页由 md2pdf 决定，需要时勾选「强制使用内置导出」。</li>
+  <li><b>PDF 文本层</b>：内置通道导出的 PDF 里，部分汉字会以康熙部首形式写入文本层（显示正常，复制出来个别字可能不同）。</li>
+  <li><b>复制时的空行</b>：front matter / 链接定义等整段隐藏内容被删掉后，其前后若原本有多个空行，最多吸收到剩一个。</li>
+  <li><b>表格跨页</b>：表头重复只在「本页放得下至少一整行」时生效，否则宁可不重复也不切断行。</li>
+  <li><b>5MB 以上文档</b>：块级语法扫描约 0.6 秒，超大文档首屏会明显变慢。</li>
+</ul>
+
+<h2>关于</h2>
+<p>Markable · 版本见「关于 Markable」。<br>© 钟义杰</p>
+
+</main>
+<script>
+(function () {
+  var marks = [];
+  function clear() {
+    marks.forEach(function (m) { m.replaceWith(document.createTextNode(m.textContent)); });
+    if (marks.length) document.body.normalize();
+    marks = [];
+  }
+  window.__clearSearch = clear;
+
+  window.__search = function (query) {
+    clear();
+    var q = (query || '').trim().toLowerCase();
+    if (!q) return 0;
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while (walker.nextNode()) {
+      var n = walker.currentNode;
+      if (n.parentElement && n.parentElement.tagName === 'SCRIPT') continue;
+      if (n.nodeValue && n.nodeValue.toLowerCase().indexOf(q) >= 0) nodes.push(n);
+    }
+    var count = 0;
+    nodes.forEach(function (n) {
+      var text = n.nodeValue, lower = text.toLowerCase();
+      var frag = document.createDocumentFragment(), i = 0, guard = 0;
+      while (guard++ < 500) {
+        var idx = lower.indexOf(q, i);
+        if (idx < 0) { frag.appendChild(document.createTextNode(text.slice(i))); break; }
+        frag.appendChild(document.createTextNode(text.slice(i, idx)));
+        var m = document.createElement('mark');
+        m.className = 'hl';
+        m.textContent = text.slice(idx, idx + q.length);
+        frag.appendChild(m);
+        i = idx + q.length;
+        count++;
+      }
+      n.parentNode.replaceChild(frag, n);
+    });
+    marks = Array.prototype.slice.call(document.querySelectorAll('mark.hl'));
+    if (marks.length) { marks[0].classList.add('cur'); marks[0].scrollIntoView({ block: 'center' }); }
+    return count;
+  };
+
+  window.__next = function () {
+    if (!marks.length) return 0;
+    var cur = marks.findIndex(function (m) { return m.classList.contains('cur'); });
+    var next = (cur + 1) % marks.length;
+    marks.forEach(function (m) { m.classList.remove('cur'); });
+    marks[next].classList.add('cur');
+    marks[next].scrollIntoView({ block: 'center' });
+    return marks.length;
+  };
+})();
+</script>
+</body>
+</html>

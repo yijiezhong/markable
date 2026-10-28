@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本唯一来源是 VERSION；构建/测试不允许隐式改版本（递增只在 build.sh / release.sh）
+      - name: Version guard (before)
+        run: |
+          cat VERSION
+          cp VERSION "$RUNNER_TEMP/VERSION.before"
+
+      - name: Build
+        run: swift build
+
+      - name: Test
+        run: swift test
+
+      # 静态检查（advisory，不阻断）：macos-14 不预装这两个工具，需现场 brew 安装；
+      # 且历史告警尚未清零（第三方 Vendor/ 也在扫描范围内），失败只作为提示。
+      # brew 失败时用 || echo 兜底（lint.sh 检测到工具缺失会跳过并返回 0）；
+      # 等 .swiftlint.yml 排除 Vendor/ 并清零 error 后，再考虑去掉 continue-on-error 变硬门禁。
+      - name: Lint (swiftlint + swift-format, advisory)
+        continue-on-error: true
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        run: |
+          brew install swiftlint swift-format || echo "⚠️ brew 安装失败，lint 将跳过"
+          scripts/lint.sh
+
+      - name: Version guard (after)
+        run: |
+          diff -u "$RUNNER_TEMP/VERSION.before" VERSION
+          echo "VERSION 未被构建修改"
+
+      # 打包冒烟：验证 app bundle 的版本、资源与第三方许可声明确实进包
+      - name: Bundle smoke (--no-bump)
+        run: |
+          scripts/make-app-bundle.sh --debug --no-bump --zip "$RUNNER_TEMP/dist"
+          ZIP="$(ls "$RUNNER_TEMP"/dist/Markable-*.zip | head -1)"
+          echo "zip: $ZIP"
+          unzip -l "$ZIP" | grep -E 'Markable\.app/Contents/(Resources/(LICENSE|THIRD-PARTY-NOTICES\.md)|Info\.plist)'
+          VERSION_IN_PLIST="$(unzip -p "$ZIP" 'Markable.app/Contents/Info.plist' | plutil -p - | sed -n 's/.*CFBundleShortVersionString" => "\([^"]*\)".*/\1/p')"
+          test "$VERSION_IN_PLIST" = "$(tr -d '[:space:]' < VERSION)"
+          echo "Info.plist 版本与 VERSION 一致：$VERSION_IN_PLIST"
