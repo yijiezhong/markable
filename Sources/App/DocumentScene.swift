@@ -92,12 +92,10 @@ struct DocumentScene: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    var body: some View {
-        content
-        .frame(minWidth: 960, minHeight: 620)
-        .navigationTitle(document.path?.lastPathComponent ?? "未命名")
-        .toolbar(id: "markable.main") {
-            // ── 左侧：文件与导航（高频入口）──
+    /// 工具栏第 1 组（`@ToolbarContentBuilder` 每组元素数需 ≤ 10，故分组）。
+@ToolbarContentBuilder
+    private var toolbarGroup1: some ToolbarContent {
+
             ToolbarItem(id: "open", placement: .navigation) {
                 Button { openDocument() } label: { Label("打开", systemImage: "folder") }
                     .help("打开 Markdown 文档（⌘O）")
@@ -142,6 +140,12 @@ struct DocumentScene: View {
                 }
                 .help("缩小（⌘-）")
             }
+    }
+
+    /// 工具栏第 2 组（`@ToolbarContentBuilder` 每组元素数需 ≤ 10，故分组）。
+@ToolbarContentBuilder
+    private var toolbarGroup2: some ToolbarContent {
+
             ToolbarItem(id: "actualSize", placement: .primaryAction) {
                 Button { app.resetZoom() } label: {
                     Label("实际大小", systemImage: "1.magnifyingglass")
@@ -218,17 +222,14 @@ struct DocumentScene: View {
                 .help("导出 PDF / HTML / 图片，或分享")
             }
 
-        }
-        .task {
-            if let initialURL {
-                load(initialURL)
-            } else {
-                restoreLastDocument()
-            }
-        }
-        .onAppear { applyTheme(app.theme) }
-        .onChange(of: app.theme) { _, value in applyTheme(value) }
-        .onReceive(fileTimer) { _ in checkExternalChange() }
+        
+    }
+
+    var body: some View { panels }
+
+    /// 面板与弹窗（sheet / alert）。
+    private var panels: some View {
+        lifecycle
         .sheet(isPresented: $showQuickOpen) { quickOpenSheet }
         .sheet(isPresented: $showSearch) { searchSheet }
         .sheet(isPresented: $showHeaderSheet) { headerFooterSheet }
@@ -270,6 +271,31 @@ struct DocumentScene: View {
             try? await Task.sleep(for: .milliseconds(300))
             let items = await Task.detached { MarkdownEngine().outline(of: text) }.value
             outlineItems = items
+        }    }
+
+    /// 事件与生命周期（命令总线、URL 命令、文件变化、定时器）。
+    private var lifecycle: some View {
+        windowed
+        .task {
+            if let initialURL {
+                load(initialURL)
+            } else {
+                restoreLastDocument()
+            }
+        }
+        .onAppear { applyTheme(app.theme) }
+        .onChange(of: app.theme) { _, value in applyTheme(value) }
+        .onReceive(fileTimer) { _ in checkExternalChange() }
+    }
+
+    /// 窗口外观：尺寸、标题、工具栏。
+    private var windowed: some View {
+        content
+        .frame(minWidth: 960, minHeight: 620)
+        .navigationTitle(document.path?.lastPathComponent ?? "未命名")
+        .toolbar {
+            toolbarGroup1
+            toolbarGroup2
         }
     }
 
@@ -296,7 +322,7 @@ struct DocumentScene: View {
              .adjustLineSpacing, .adjustParagraphSpacing, .toggleFirstLineIndent,
              .toggleHeadingNumbering, .toggleCodeLineNumbers, .setPaper, .adjustMargin,
              .toggleTOCPage, .setSidebar, .toggleSidebarHidden, .toggleFindOption,
-             .toggleToolbarShown, .customizeToolbar:
+             .toggleToolbarShown:
             executeChromeCommand(command)
         }
     }
@@ -358,7 +384,6 @@ struct DocumentScene: View {
     private func executeChromeCommand(_ command: AppCommand) {
         switch command {
         case .toggleToolbarShown: NSApp.keyWindow?.toggleToolbarShown(nil)
-        case .customizeToolbar: NSApp.keyWindow?.runToolbarCustomizationPalette(nil)
         default:
             break
         }

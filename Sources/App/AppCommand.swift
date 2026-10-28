@@ -51,7 +51,6 @@ enum AppCommand: Equatable {
 
     // 视图 - 工具栏
     case toggleToolbarShown
-    case customizeToolbar
 
     // 视图 - 显示
     case setTheme(String)

@@ -197,7 +197,6 @@ struct MarkableApp: App {
         CommandGroup(after: .toolbar) {
             Button("隐藏工具栏") { send(.toggleToolbarShown) }
                 .keyboardShortcut("t", modifiers: [.command, .option])
-            Button("自定义工具栏…") { send(.customizeToolbar) }
             Button("显示 / 隐藏标签栏") { NSApp.keyWindow?.toggleTabBar(nil) }
                 .keyboardShortcut("b", modifiers: [.command, .option])
             Divider()
