@@ -54,34 +54,46 @@ struct DocumentScene: View {
     private let storeUI = DocumentStoreUI()
     let store = FileDocumentStore()
     let settings = SettingsStore()
-    var body: some View {
-        Group {
-            VStack(spacing: 0) {
+
+    /// 主内容：侧栏 + 编辑器 + 状态栏。
+    ///
+    /// 从 `body` 里拆出来（而不是内联）是为了降低类型推断复杂度——
+    /// CI 上的编译器版本曾对单个 `body` 报「unable to type-check in reasonable time」。
+    private var content: some View {
+        VStack(spacing: 0) {
             HStack(spacing: 0) {
                 if !app.sidebarHidden {
                     sidebar
                         .frame(width: 220)
                     Divider()
                 }
-                MarkdownTextView(
-                    text: $document.content,
-                    selection: $selection,
-                    selectedText: $selectedText,
-                    baseDirectory: document.path?.deletingLastPathComponent(),
-                    // 放大 / 缩小：把缩放乘到排版字号上，行宽随窗口重排（不会左右溢出）。
-                    fontSize: CGFloat(app.fontSize * app.zoom),
-                    typography: app.typography,
-                    bulletLists: app.bulletLists,
-                    reloadToken: reloadToken,
-                    scrollRequest: scrollRequest,
-                    scrollViewBox: pager
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                editor
             }
             Divider()
             statusBar
-            }
         }
+    }
+
+    /// 编辑器（TextKit 2 渲染）。
+    private var editor: some View {
+        MarkdownTextView(
+            text: $document.content,
+            selection: $selection,
+            selectedText: $selectedText,
+            baseDirectory: document.path?.deletingLastPathComponent(),
+            // 放大 / 缩小：把缩放乘到排版字号上，行宽随窗口重排（不会左右溢出）。
+            fontSize: CGFloat(app.fontSize * app.zoom),
+            typography: app.typography,
+            bulletLists: app.bulletLists,
+            reloadToken: reloadToken,
+            scrollRequest: scrollRequest,
+            scrollViewBox: pager
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    var body: some View {
+        content
         .frame(minWidth: 960, minHeight: 620)
         .navigationTitle(document.path?.lastPathComponent ?? "未命名")
         .toolbar(id: "markable.main") {
