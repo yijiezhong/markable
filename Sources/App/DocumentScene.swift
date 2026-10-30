@@ -247,6 +247,8 @@ struct DocumentScene: View {
         .onReceive(NotificationCenter.default.publisher(for: .markableOpenInWindow)) { note in
             guard let id = note.userInfo?["id"] as? UUID, id == windowID,
                   let url = note.userInfo?["url"] as? URL else { return }
+            // 通知已送达：清掉待打开队列，避免视图重建时重复加载旧文件。
+            _ = DocumentWindowManager.shared.consumePendingURL(for: windowID)
             load(url)
         }
         .onChange(of: appCommandBus.pending) { _, incoming in
@@ -277,11 +279,24 @@ struct DocumentScene: View {
     private var lifecycle: some View {
         windowed
         .task {
+            // 已由「打开通知」加载过（启动期打开文件）时不要覆盖。
+            if document.path != nil { return }
             if let initialURL {
                 load(initialURL)
-            } else {
-                restoreLastDocument()
+                return
             }
+            // 冷启动时打开事件可能晚于视图挂载：先查一次，再等一小段复查。
+            if let pending = DocumentWindowManager.shared.consumePendingURL(for: windowID) {
+                load(pending)
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(180))
+            if document.path != nil { return }
+            if let pending = DocumentWindowManager.shared.consumePendingURL(for: windowID) {
+                load(pending)
+                return
+            }
+            restoreLastDocument()
         }
         .onAppear { applyTheme(app.theme) }
         .onChange(of: app.theme) { _, value in applyTheme(value) }

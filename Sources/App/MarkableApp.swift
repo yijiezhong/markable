@@ -278,9 +278,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Finder 双击 / `open -a Markable file.md` / 拖到 Dock 图标：
     /// 这类打开走 OFD（`odoc`）Apple Event，不是 URL scheme，必须在这里接。
     /// 交给窗口管理器：已打开就切标签页，有空标签就用它，否则**新开标签页**。
+    /// 启动早期的文件打开事件（Finder 双击 / `open -a`）：此时 SwiftUI 视图还没挂载，
+    /// 直接建窗会得到一个空白标签页。先排队，`applicationDidFinishLaunching` 之后再开。
+    private var launchPendingURLs: [URL] = []
+    private var didFinishLaunching = false
+
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let first = urls.first(where: { $0.isFileURL }) else { return }
-        DocumentWindowManager.shared.open(first)
+        if didFinishLaunching {
+            DocumentWindowManager.shared.open(first)
+        } else {
+            launchPendingURLs.append(first)
+        }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -299,6 +308,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.didBecomeKeyNotification,
             object: nil
         )
+
+        didFinishLaunching = true
+        for url in launchPendingURLs {
+            DocumentWindowManager.shared.open(url)
+        }
+        launchPendingURLs.removeAll()
     }
 
     private static let helpMenuSink = NSMenu(title: "MarkableHelpMenuSink")

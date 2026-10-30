@@ -29,6 +29,10 @@ final class DocumentWindowManager: NSObject {
 
     private let settings = SettingsStore()
     private var entries: [Entry] = []
+    /// 视图尚未挂载时收到的打开请求（启动早期的 OFD 事件 / 通知先于 SwiftUI 视图到达）。
+    /// `DocumentScene` 首次挂载时消费，避免「App 没运行时双击文件 → 空白标签页」。
+    private var pendingURLs: [UUID: URL] = [:]
+
 
     /// 当前"活跃"标签页：key → main → 第一个（菜单命令据此只作用于当前标签）。
     var activeWindowID: UUID? {
@@ -63,6 +67,7 @@ final class DocumentWindowManager: NSObject {
         case .reuseEmpty(let index):
             let entry = entries[index]
             entries[index].url = target
+            pendingURLs[entry.id] = target
             NotificationCenter.default.post(
                 name: .markableOpenInWindow, object: nil,
                 userInfo: ["id": entry.id, "url": target]
@@ -71,6 +76,12 @@ final class DocumentWindowManager: NSObject {
         case .newTab:
             newTab(url: target)                                       // 否则新开标签页
         }
+    }
+
+    /// 取出并清除某个窗口的待打开 URL（视图首次挂载时调用）。
+    func consumePendingURL(for id: UUID) -> URL? {
+        defer { pendingURLs[id] = nil }
+        return pendingURLs[id]
     }
 
     /// 打开设置窗口（⌘, 等效）——供菜单与 `markable://settings` 使用。
