@@ -85,37 +85,49 @@ struct AppStateTests {
     }
 
     @Test("命令总线驱动的菜单纯状态项生效（回归：曾因未订阅总线而全部无反应）")
-    func commandBusDrivesState() {
+    func commandBusDrivesState() async {
         let app = makeState()
         app.observeCommands()
+        /// 总线回调改为 `Task { @MainActor }`（避免 Swift 6 的 assumeIsolated 断言），
+        /// 处理是异步的：每次发送后让出一次，保证断言看到最新状态。
+        @MainActor func drain() async { try? await Task.sleep(for: .milliseconds(5)) }
 
         AppCommandBus.shared.send(.zoomIn)
+        await drain()
         #expect(app.zoom > 1.0)
 
         AppCommandBus.shared.send(.setTheme("dark"))
+        await drain()
         #expect(app.theme == "dark")
 
         AppCommandBus.shared.send(.setSidebar(.files))
+        await drain()
         #expect(app.sidebarMode == .files)
         #expect(app.sidebarHidden == false)
 
         AppCommandBus.shared.send(.toggleSidebarHidden)
+        await drain()
         #expect(app.sidebarHidden == true)
 
         AppCommandBus.shared.send(.applyPreset(.academic))
+        await drain()
         #expect(app.typography.family == .serif)
         #expect(app.typography.headingNumbering == true)
 
         AppCommandBus.shared.send(.setPaper(.a3))
+        await drain()
         #expect(app.paper == .a3)
 
         AppCommandBus.shared.send(.adjustMargin(5))
+        await drain()
         #expect(app.marginMM == 25)
 
         AppCommandBus.shared.send(.toggleTOCPage)
+        await drain()
         #expect(app.includeTOC == true)
 
         AppCommandBus.shared.send(.toggleFindOption(.isRegex))
+        await drain()
         #expect(app.findOptions.isRegex == true)
 
         // 需要视图上下文的命令不由 AppState 处理

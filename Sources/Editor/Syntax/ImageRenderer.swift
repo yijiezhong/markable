@@ -35,14 +35,18 @@ enum ImageRenderer {
     }
 
     /// 本地图片 → 附件（超宽等比缩小）。
-    static func attachment(forLocal url: URL) -> NSTextAttachment? {
+    ///
+    /// - Parameter displayWidth: HTML `<img width="...">` 指定的显示宽度；
+    ///   给出时按它等比缩放（超过容器宽度仍按 `maxDisplayWidth` 兜底）。
+    static func attachment(forLocal url: URL, displayWidth: CGFloat? = nil) -> NSTextAttachment? {
         guard let image = NSImage(contentsOf: url), image.size.width > 0 else { return nil }
         let attachment = NSTextAttachment()
         attachment.image = image
         let width = image.size.width
-        if width > maxDisplayWidth {
-            let scale = maxDisplayWidth / width
-            attachment.bounds = CGRect(x: 0, y: 0, width: maxDisplayWidth, height: image.size.height * scale)
+        let target = min(displayWidth ?? maxDisplayWidth, maxDisplayWidth)
+        if width > target {
+            let scale = target / width
+            attachment.bounds = CGRect(x: 0, y: 0, width: target, height: image.size.height * scale)
         }
         return attachment
     }

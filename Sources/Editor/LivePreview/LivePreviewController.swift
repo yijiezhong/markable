@@ -194,7 +194,7 @@ final class LivePreviewController {
         // 3) 字符替换：统一收集（基于同一份源文本），从后往前应用
         var replacements: [(range: NSRange, text: NSAttributedString)] = []
         collectImageReplacements(in: storage, baseDirectory: baseDirectory, into: &replacements)
-        collectTableReplacements(in: storage, into: &replacements)
+        collectTableReplacements(in: storage, baseDirectory: baseDirectory, into: &replacements)
         collectMermaidReplacements(in: storage, into: &replacements)
         let pendingMath = collectMathReplacements(in: storage, into: &replacements)
         collectTaskMarkerReplacements(in: storage, into: &replacements)

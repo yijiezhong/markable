@@ -8,6 +8,7 @@ extension LivePreviewController {
     /// 由 TextKit1 的 `NSTextTable` 负责画网格线（替换阶段整体替换）。
     func collectTableReplacements(
         in storage: NSMutableAttributedString,
+        baseDirectory: URL?,
         into list: inout [(range: NSRange, text: NSAttributedString)]
     ) {
         let text = storage.string
@@ -17,7 +18,7 @@ extension LivePreviewController {
             let rows = parseTableRows(in: ns, range: table.range)
             guard rows.count >= 2 else { continue }
             let alignments = parseTableAlignments(in: ns, range: table.range)
-            let attributed = makeTable(rows, alignments: alignments, tableIndex: tableIndex)
+            let attributed = makeTable(rows, alignments: alignments, tableIndex: tableIndex, baseDirectory: baseDirectory)
             guard attributed.length > 0 else { continue }
             list.append((table.range, attributed))
         }
@@ -108,7 +109,8 @@ extension LivePreviewController {
     private func makeTable(
         _ rows: [[String]],
         alignments: [NSTextAlignment] = [],
-        tableIndex: Int = 0
+        tableIndex: Int = 0,
+        baseDirectory: URL? = nil
     ) -> NSAttributedString {
         let columnCount = rows.map(\.count).max() ?? 1
         guard columnCount > 0 else { return NSAttributedString() }
@@ -149,7 +151,11 @@ extension LivePreviewController {
                     .foregroundColor: NSColor.labelColor,
                 ]
                 let normalizedCell = Self.normalizeCellBreaks(cellText)
-                let cell = NSMutableAttributedString(string: normalizedCell + "\n", attributes: attributes)
+                // 先把单元格里的 HTML `<img>` 换成图片附件（GitHub README 常用写法），
+                // 再补换行与基础样式；`applyInlineMarkup` 会照常处理行内标记。
+                let cell = Self.htmlImageAttributed(normalizedCell, baseDirectory: baseDirectory, altAttribute: "")
+                cell.append(NSAttributedString(string: "\n", attributes: attributes))
+                cell.addAttributes(attributes, range: NSRange(location: 0, length: cell.length))
                 applyInlineMarkup(to: cell)
                 let cellRange = NSRange(location: 0, length: cell.length)
                 cell.addAttribute(.paragraphStyle, value: style, range: cellRange)
@@ -172,8 +178,9 @@ extension LivePreviewController {
             for column in 0..<columnCount {
                 let text = column < cells.count ? cells[column] : ""
                 let plain = Self.plainWidthText(text)
-                let width = (plain as NSString).size(withAttributes: [.font: font]).width + 14
-                natural[column] = max(natural[column], width)
+                let textWidth = (plain as NSString).size(withAttributes: [.font: font]).width + 14
+                let imageWidth = Self.htmlImageWidth(in: text) ?? 0
+                natural[column] = max(natural[column], max(textWidth, imageWidth + 14))
             }
         }
 

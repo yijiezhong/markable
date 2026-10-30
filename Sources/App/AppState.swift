@@ -134,7 +134,7 @@ final class AppState: ObservableObject {
         AppCommandBus.shared.$pending
             .compactMap { $0?.command }
             .sink { [weak self] command in
-                _ = MainActor.assumeIsolated { self?.handleStateCommand(command) ?? false }
+                Task { @MainActor in _ = self?.handleStateCommand(command) }
             }
             .store(in: &cancellables)
     }

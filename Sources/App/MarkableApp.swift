@@ -315,8 +315,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func configureSystemEditItemCleanup() {
         Self.systemEditStripper.attach()
+        // Timer 闭包是非隔离域：`MainActor.assumeIsolated` 在 Swift 6 运行时可能断言失败
+        // （实测导致启动后崩溃），改用显式的 MainActor 任务。
         systemEditCleanupTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 AppDelegate.systemEditStripper.attach()
             }
         }
@@ -330,11 +332,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Self.enforceHelpMenu()
         helpMenuObservation = NSApp.observe(\.helpMenu, options: [.new]) { _, _ in
             DispatchQueue.main.async {
-                MainActor.assumeIsolated { AppDelegate.enforceHelpMenu() }
+                Task { @MainActor in AppDelegate.enforceHelpMenu() }
             }
         }
         let timer = Timer(timeInterval: 1.0, repeats: true) { _ in
-            MainActor.assumeIsolated { AppDelegate.enforceHelpMenu() }
+            Task { @MainActor in AppDelegate.enforceHelpMenu() }
         }
         RunLoop.main.add(timer, forMode: .common)
     }

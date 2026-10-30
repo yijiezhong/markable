@@ -6,6 +6,80 @@ import AppKit
 extension LivePreviewController {
     // MARK: - 字符替换收集
 
+    // MARK: - HTML `<img>`
+
+    /// HTML `<img src="..." alt="..." width="...">`（GitHub README 常见写法）。
+    struct HtmlImage {
+        var src: String
+        var alt: String
+        var width: CGFloat?
+    }
+
+    static let htmlImageRegex = try? NSRegularExpression(
+        pattern: #"<img\b[^>]*>"#, options: [.caseInsensitive]
+    )
+
+    private static let htmlImageAttrRegex = try? NSRegularExpression(
+        pattern: #"(src|alt|width)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))"#,
+        options: [.caseInsensitive]
+    )
+
+    /// 找出文本里所有 HTML `<img>` 及其属性（按出现顺序）。
+    static func htmlImages(in text: String) -> [(range: NSRange, image: HtmlImage)] {
+        let ns = text as NSString
+        let full = NSRange(location: 0, length: ns.length)
+        guard let htmlImageRegex, let htmlImageAttrRegex else { return [] }
+        var results: [(range: NSRange, image: HtmlImage)] = []
+        for match in htmlImageRegex.matches(in: text, range: full) {
+            let tag = ns.substring(with: match.range)
+            var attrs: [String: String] = [:]
+            let tagNS = tag as NSString
+            for attrMatch in htmlImageAttrRegex.matches(in: tag, range: NSRange(location: 0, length: tagNS.length)) {
+                let name = tagNS.substring(with: attrMatch.range(at: 1)).lowercased()
+                let valueRange = (2...4).first { attrMatch.range(at: $0).location != NSNotFound }
+                    .map { attrMatch.range(at: $0) }
+                guard let valueRange else { continue }
+                attrs[name] = tagNS.substring(with: valueRange)
+            }
+            guard let src = attrs["src"], !src.isEmpty else { continue }
+            let width = attrs["width"].flatMap { Double($0) }.map { CGFloat($0) }
+            results.append((match.range, HtmlImage(src: src, alt: attrs["alt"] ?? "", width: width)))
+        }
+        return results
+    }
+
+    /// 把文本里的 `<img>` 就地换成图片附件（供表格单元格等「纯字符串重建」的场景复用）。
+    static func htmlImageAttributed(
+        _ text: String, baseDirectory: URL?, altAttribute: String
+    ) -> NSMutableAttributedString {
+        let result = NSMutableAttributedString(string: text)
+        for (range, image) in htmlImages(in: text).reversed() {
+            let attachment: NSTextAttachment
+            switch ImageRenderer.classify(image.src, relativeTo: baseDirectory) {
+            case .local(let url):
+                attachment = ImageRenderer.attachment(forLocal: url, displayWidth: image.width)
+                    ?? ImageRenderer.placeholderAttachment(text: "🖼 \(image.alt.isEmpty ? image.src : image.alt)（无法读取）")
+            case .remote(let raw):
+                attachment = ImageRenderer.placeholderAttachment(text: "🌐 \(raw)")
+            case .missing(let raw):
+                attachment = ImageRenderer.placeholderAttachment(text: "🖼 \(image.alt.isEmpty ? raw : image.alt)（缺失）")
+            }
+            let replacement = NSMutableAttributedString(attachment: attachment)
+            replacement.addAttribute(
+                .markableImageAlt,
+                value: image.alt.isEmpty ? image.src : image.alt,
+                range: NSRange(location: 0, length: replacement.length)
+            )
+            result.replaceCharacters(in: range, with: replacement)
+        }
+        return result
+    }
+
+    /// 文本里 `<img width=...>` 的最大宽度（用于表格列宽估算）。
+    static func htmlImageWidth(in text: String) -> CGFloat? {
+        htmlImages(in: text).compactMap(\.image.width).max()
+    }
+
     /// `![alt](path)` → 图片附件（本地）或占位附件（远程 / 缺失）。
     /// 附件必须落在 **U+FFFC** 字符上才会渲染，故在替换阶段把 alt 范围换成附件字符。
     func collectImageReplacements(
@@ -30,10 +104,10 @@ extension LivePreviewController {
             }
         }
 
-        func makeAttachment(path: String, alt: String) -> NSTextAttachment {
+        func makeAttachment(path: String, alt: String, width: CGFloat? = nil) -> NSTextAttachment {
             switch ImageRenderer.classify(path, relativeTo: baseDirectory) {
             case .local(let url):
-                return ImageRenderer.attachment(forLocal: url)
+                return ImageRenderer.attachment(forLocal: url, displayWidth: width)
                     ?? ImageRenderer.placeholderAttachment(text: "🖼 \(alt.isEmpty ? path : alt)（无法读取）")
             case .remote(let raw):
                 return ImageRenderer.placeholderAttachment(text: "🌐 \(raw)")
@@ -43,8 +117,8 @@ extension LivePreviewController {
         }
 
         /// 附件字符（U+FFFC）带上 alt：复制时据此换成 `[图片: alt]`，而不是把占位符方框抄走。
-        func attachedImage(path: String, alt: String) -> NSAttributedString {
-            let text = NSMutableAttributedString(attachment: makeAttachment(path: path, alt: alt))
+        func attachedImage(path: String, alt: String, width: CGFloat? = nil) -> NSAttributedString {
+            let text = NSMutableAttributedString(attachment: makeAttachment(path: path, alt: alt, width: width))
             text.addAttribute(.markableImageAlt, value: alt,
                               range: NSRange(location: 0, length: text.length))
             return text
@@ -61,6 +135,13 @@ extension LivePreviewController {
                 let path = ns.substring(with: pathRange)
                 list.append((match.range(at: 1), attachedImage(path: path, alt: alt)))
             }
+        }
+
+        // HTML `<img src="..." width="...">`：GitHub README 常见；表格内的由表格重建处理。
+        let tableRanges = cachedBlockRanges.filter { $0.kind == .table }.map(\.range)
+        for (range, image) in Self.htmlImages(in: text) {
+            if tableRanges.contains(where: { NSIntersectionRange($0, range).length > 0 }) { continue }
+            list.append((range, attachedImage(path: image.src, alt: image.alt, width: image.width)))
         }
 
         // 引用式图片：`![alt][ref]`（整段替换为附件；标记没有 hideMarkup 处理）
@@ -411,6 +492,9 @@ extension LivePreviewController {
             default: return false
             }
         }.map(\.range)
+        // HTML `<img>` 标签内部不参与自动链接：否则标签里的 `https://…` 会先生成链接替换，
+        // 覆盖「整段替换成图片」的项（表现为标签原样显示）。
+        excluded += Self.htmlImages(in: text).map(\.range)
 
         func linkAttributes(_ url: String) -> [NSAttributedString.Key: Any] {
             var attributes = baseAttributes
