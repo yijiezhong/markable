@@ -180,5 +180,5 @@ MIT，见 `LICENSE`。第三方组件（`Vendor/swift-mermaid`、`swift-markdown
 
 - 架构与约束：`docs/ARCHITECTURE.md`
 - 关键决策记录：`docs/adr/`
-- 版本号规则：`x.y.z` 每位 0–9，`z` 满 9 进位 `y`、`y` 满 9 进位 `x`（见 `scripts/bump-version.sh`）
+- 版本号规则：`x.y.z` 每位 0–9，`z` 满 9 进位 `y`、`y` 满 9 进位 `x`；构建号 `build` 取当前时间精确到秒（`YYYYMMDDhhmmss`），见 `scripts/bump-version.sh`
 - 本地维护日志（不随仓库发布）：`HANDOVER.md`

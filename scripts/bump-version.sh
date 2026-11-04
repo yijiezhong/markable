@@ -1,8 +1,11 @@
 #!/bin/zsh
 # bump-version.sh —— 版本号递增工具（x.y.z 个位数进位制），并生成 App 内可读的版本文件。
 #
-# 版本规则（全局通用）：x.y.z 每一位都是 0–9 的个位数；
-#   patch 满 9 后再 +1 → 归 0、minor +1；minor 满 9 后再 +1 → 归 0、major +1。
+# 版本规则（全局通用）：
+#   1) 版本号 x.y.z：每一位都是 0–9 的个位数；
+#      patch 满 9 后再 +1 → 归 0、minor +1；minor 满 9 后再 +1 → 归 0、major +1。
+#   2) 构建号 build：当前时间精确到秒，格式 YYYYMMDDhhmmss（14 位数字），
+#      每次递增版本时同步更新；写入 GeneratedVersion.swift 与 Info.plist 的 CFBundleVersion。
 #
 # 版本唯一来源是仓库根的 VERSION 文件；每次执行都会：
 #   1) 递增版本号并写回 VERSION；
@@ -80,7 +83,7 @@ else
   NEW="$major.$minor.$patch"
 fi
 
-BUILD_NUMBER="$(date +%Y%m%d%H%M)"
+BUILD_NUMBER="$(date +%Y%m%d%H%M%S)"
 
 if [[ "$DRY" == "1" ]]; then
   echo "$NEW"
@@ -95,7 +98,7 @@ cat > "$GENERATED" <<SWIFT
 enum AppVersion {
     /// 版本号（x.y.z，每位 0–9，满 9 进位）
     static let short = "$NEW"
-    /// 构建号（递增时间）
+    /// 构建号（当前时间，精确到秒：YYYYMMDDhhmmss）
     static let build = "$BUILD_NUMBER"
     /// 「关于」窗口显示的一行
     static var display: String { "v\(short) (\(build))" }

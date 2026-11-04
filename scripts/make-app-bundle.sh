@@ -51,7 +51,7 @@ fi
 # 构建号以 bump 生成的值为准，保证 Info.plist 与 App 内「关于」显示一致
 BUILD_NUMBER="$(sed -n 's/.*static let build = "\([0-9][0-9]*\)".*/\1/p' \
   "$APP_DIR/Sources/App/GeneratedVersion.swift" | head -1)"
-BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d%H%M)}"
+BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d%H%M%S)}"
 echo "   版本：v${VERSION}（build ${BUILD_NUMBER}）"
 
 echo "▶︎ swift build -c $CONFIG（带 -emit-const-values，供 App Intents 元数据抽取）"
