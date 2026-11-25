@@ -4,6 +4,7 @@ import Combine
 import UniformTypeIdentifiers
 import PDFKit
 
+
 /// 侧栏模式。
 enum SidebarMode: String, CaseIterable, Identifiable {
     case outline = "大纲"
@@ -36,6 +37,8 @@ struct DocumentScene: View {
     @State var isBatching = false
     /// 导出结果提示（md2pdf / 回退内置）。
     @State var exportNotice: String?
+    /// 打开文件失败时的提示（编码无法识别 / 文件不存在），避免出现无提示的空白标签页。
+    @State var openError: String?
     @State var showHeaderSheet = false
     @State var showFindSheet = false
     @State var findQuery = ""
@@ -266,6 +269,14 @@ struct DocumentScene: View {
             Button("好") { exportNotice = nil }
         } message: {
             Text(exportNotice ?? "")
+        }
+        .alert("无法打开文件", isPresented: Binding(
+            get: { openError != nil },
+            set: { if !$0 { openError = nil } }
+        )) {
+            Button("好") { openError = nil }
+        } message: {
+            Text(openError ?? "")
         }
         .task(id: document.content) {
             // 大纲在后台解析；编辑时 300ms 防抖（大文档不在主线程扫描全文）

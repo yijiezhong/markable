@@ -79,6 +79,8 @@ final class DocumentWindowManager: NSObject {
     }
 
     /// 取出并清除某个窗口的待打开 URL（视图首次挂载时调用）。
+    func hasPendingURL(for id: UUID) -> Bool { pendingURLs[id] != nil }
+
     func consumePendingURL(for id: UUID) -> URL? {
         defer { pendingURLs[id] = nil }
         return pendingURLs[id]

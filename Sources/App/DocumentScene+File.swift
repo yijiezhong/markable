@@ -43,7 +43,10 @@ extension DocumentScene {
 
     /// 打开文件并记录到历史。
     func load(_ url: URL, preserveScroll: Bool = false) {
-        guard let opened = try? store.open(path: url) else { return }
+        guard let opened = try? store.open(path: url) else {
+            openError = "\(url.lastPathComponent)：文件不存在，或编码无法识别（支持 UTF-8 / GBK / UTF-16）"
+            return
+        }
         let previousOffset = preserveScroll ? currentScrollOffset() : nil
         document = opened
         selectedText = ""
