@@ -322,7 +322,9 @@ struct DocumentScene: View {
     /// （swiftlint cyclomatic_complexity）。
     private func execute(_ command: AppCommand) {
         switch command {
-        case .newWindow, .openDocument, .quickOpen, .openRecent, .clearRecent,
+        case .openRecent:
+            break   // 由 App 层（AppState.handleStateCommand）直接处理：窗口级命令不该依赖焦点窗口
+        case .newWindow, .openDocument, .quickOpen, .clearRecent,
              .reloadFile, .lintDocument:
             executeDocumentCommand(command)
         case .share, .exportPDF, .exportHTML, .exportPNG, .batchExport, .pdfOptions, .printDocument:
@@ -349,7 +351,6 @@ struct DocumentScene: View {
             break   // 由 App 层创建窗口
         case .openDocument: openDocument()
         case .quickOpen: quickQuery = ""; showQuickOpen = true
-        case .openRecent(let url): DocumentWindowManager.shared.open(url)
         case .clearRecent: app.clearRecents()
         case .reloadFile: reloadFromDisk()
         case .lintDocument:

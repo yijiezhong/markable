@@ -159,6 +159,11 @@ final class AppState: ObservableObject {
         case .setPaper(let value): paper = value
         case .adjustMargin(let delta): adjustMargin(by: delta)
         case .toggleTOCPage: includeTOC.toggle()
+        case .openRecent(let url):
+            // 窗口级命令：直接交给窗口管理器，不依赖某个 DocumentScene 是焦点窗口
+            //（否则设置窗口在前台 / 无文档窗口时，命令会被各 DocumentScene 的 guard 丢弃，
+            // 表现为「打开最近的历史文件没反应」）。
+            DocumentWindowManager.shared.open(url)
         case .setSidebar(let mode):
             sidebarMode = mode
             sidebarHidden = false
