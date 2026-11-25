@@ -159,6 +159,9 @@ final class DocumentWindowManager: NSObject {
         let target = entries.first { $0.window.isKeyWindow }?.window
             ?? entries.first { $0.window.isMainWindow }?.window
             ?? NSApp.keyWindow
+        // 关闭前先移出标签组（原因见 `windowWillClose` 的注释）：窗口对象会被
+        // `closedWindows` 保留强引用，留在组里会让 AppKit 之后遍历到已关闭的窗口而断言崩溃。
+        target?.tabbingMode = .disallowed
         target?.performClose(nil)
     }
 
@@ -207,6 +210,14 @@ final class DocumentWindowManager: NSObject {
     @objc private func windowWillClose(_ note: Notification) {
         guard let window = note.object as? NSWindow else { return }
         guard let index = entries.firstIndex(where: { $0.window === window }) else { return }
+        // 关闭前先把窗口移出标签组。
+        //
+        // 这里的窗口对象在关闭后**故意保留强引用**（见上方 `closedWindows` 的说明），
+        // 但它已经不在 `entries` 里了。如果仍留在 AppKit 的 tab 组里，之后菜单弹窗关闭
+        // / App 失焦等时机，AppKit 遍历标签组就会访问到这个"已关闭但还活着"的窗口，
+        // 触发 `NSWindowStackController _selectedWindow` 断言中断（macOS 27 实测 3 次，
+        // 崩溃报告 2026-11-19 / 11-22 / 11-25）。
+        window.tabbingMode = .disallowed
         // 记住"关闭前是否最大化"，下次启动据此决定
         settings.windowMaximized = isMaximized(window)
         closedWindows.append(window)      // 保命：绝不在关闭时释放（见上）
