@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 import PDFKit
 
 
+
 /// 侧栏模式。
 enum SidebarMode: String, CaseIterable, Identifiable {
     case outline = "大纲"
@@ -252,6 +253,8 @@ struct DocumentScene: View {
                   let url = note.userInfo?["url"] as? URL else { return }
             // 通知已送达：清掉待打开队列，避免视图重建时重复加载旧文件。
             _ = DocumentWindowManager.shared.consumePendingURL(for: windowID)
+            // 重试通知可能到达多次：已经是这个文件就不再重复读盘。
+            if document.path?.standardizedFileURL == url.standardizedFileURL { return }
             load(url)
         }
         .onChange(of: appCommandBus.pending) { _, incoming in
@@ -301,7 +304,9 @@ struct DocumentScene: View {
                 load(pending)
                 return
             }
-            try? await Task.sleep(for: .milliseconds(180))
+            // release 冷启动时「打开文件」事件可能晚于视图挂载（debug 构建因日志/未优化反而更快命中）。
+            // 等 800ms 再复查一次；仍为空才恢复上次阅读。
+            try? await Task.sleep(for: .milliseconds(800))
             if document.path != nil { return }
             if let pending = DocumentWindowManager.shared.consumePendingURL(for: windowID) {
                 load(pending)

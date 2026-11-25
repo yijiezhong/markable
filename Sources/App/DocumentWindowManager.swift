@@ -68,10 +68,16 @@ final class DocumentWindowManager: NSObject {
             let entry = entries[index]
             entries[index].url = target
             pendingURLs[entry.id] = target
-            NotificationCenter.default.post(
-                name: .markableOpenInWindow, object: nil,
-                userInfo: ["id": entry.id, "url": target]
-            )
+            // 冷启动时视图可能还没挂载完，单次通知会丢。重试几次，命中即加载；
+            // 场景端按「当前文档是否已是该 URL」去重，不会重复读文件。
+            for delay in [0.0, 0.3, 0.9, 1.8] {
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                    NotificationCenter.default.post(
+                        name: .markableOpenInWindow, object: nil,
+                        userInfo: ["id": entry.id, "url": target]
+                    )
+                }
+            }
             entry.window.makeKeyAndOrderFront(nil)
         case .newTab:
             newTab(url: target)                                       // 否则新开标签页
