@@ -98,31 +98,31 @@ struct DocumentScene: View {
 
             ToolbarItem(id: "open", placement: .navigation) {
                 Button { openDocument() } label: { Label("打开", systemImage: "folder") }
-                    .help("打开 Markdown 文档（⌘O）")
+                    .accessibilityHint("打开 Markdown 文档（⌘O）")
             }
 
             ToolbarItem(id: "reload", placement: .navigation) {
                 Button { reloadFromDisk() } label: {
                     Label("重新载入", systemImage: "arrow.clockwise")
                 }
-                .help("从磁盘重新载入并重新渲染（⌘R）")
+                .accessibilityHint("从磁盘重新载入并重新渲染（⌘R）")
             }
 
             ToolbarItem(id: "quickOpen", placement: .navigation) {
                 Button { quickQuery = ""; showQuickOpen = true } label: {
                     Label("快速打开", systemImage: "text.magnifyingglass")
                 }
-                .help("快速打开（⇧⌘O）")
+                .accessibilityHint("快速打开（⇧⌘O）")
             }
 
             ToolbarItem(id: "prevHeading", placement: .navigation) {
                 Button { jumpToAdjacentHeading(-1) } label: { Label("上一个标题", systemImage: "chevron.up") }
-                    .help("跳到上一个标题（⌘↑）")
+                    .accessibilityHint("跳到上一个标题（⌘↑）")
             }
 
             ToolbarItem(id: "nextHeading", placement: .navigation) {
                 Button { jumpToAdjacentHeading(1) } label: { Label("下一个标题", systemImage: "chevron.down") }
-                    .help("跳到下一个标题（⌘↓）")
+                    .accessibilityHint("跳到下一个标题（⌘↓）")
             }
 
             // ── 右侧 · 阅读：查找（高频） ──
@@ -130,7 +130,7 @@ struct DocumentScene: View {
                 Button { findQuery = ""; findMatches = []; showFindSheet = true } label: {
                     Label("查找", systemImage: "magnifyingglass")
                 }
-                .help("文档内查找：正则 / 整词 / 大小写")
+                .accessibilityHint("文档内查找：正则 / 整词 / 大小写")
             }
 
             // ── 右侧 · 显示与缩放 ──
@@ -138,7 +138,7 @@ struct DocumentScene: View {
                 Button { app.zoomOut() } label: {
                     Label("缩小", systemImage: "minus.magnifyingglass")
                 }
-                .help("缩小（⌘-）")
+                .accessibilityHint("缩小（⌘-）")
             }
     }
 
@@ -150,20 +150,20 @@ struct DocumentScene: View {
                 Button { app.resetZoom() } label: {
                     Label("实际大小", systemImage: "1.magnifyingglass")
                 }
-                .help("实际大小（⌘0）")
+                .accessibilityHint("实际大小（⌘0）")
                 .disabled(abs(app.zoom - 1.0) < 0.001)
             }
             ToolbarItem(id: "zoomToFit", placement: .primaryAction) {
                 Button { zoomToFitWindow() } label: {
                     Label("缩放至窗口大小", systemImage: "arrow.up.left.and.down.right.magnifyingglass")
                 }
-                .help("缩放至窗口大小（⌘9）")
+                .accessibilityHint("缩放至窗口大小（⌘9）")
             }
             ToolbarItem(id: "zoomIn", placement: .primaryAction) {
                 Button { app.zoomIn() } label: {
                     Label("放大", systemImage: "plus.magnifyingglass")
                 }
-                .help("放大（⌘+）")
+                .accessibilityHint("放大（⌘+）")
             }
             ToolbarItem(id: "theme", placement: .primaryAction) {
                 Menu {
@@ -173,7 +173,7 @@ struct DocumentScene: View {
                 } label: {
                     Label(themeTitle, systemImage: "circle.lefthalf.filled")
                 }
-                .help("主题")
+                .accessibilityHint("主题")
             }
             ToolbarItem(id: "preset", placement: .primaryAction) {
                 Menu {
@@ -185,7 +185,7 @@ struct DocumentScene: View {
                 } label: {
                     Label(app.currentPreset.title, systemImage: "textformat")
                 }
-                .help("版式")
+                .accessibilityHint("版式")
             }
 
             // ── 右侧 · 检查 ──
@@ -194,7 +194,7 @@ struct DocumentScene: View {
                     Label(lintIssues.isEmpty ? "体检通过" : "体检 \(lintIssues.count)",
                           systemImage: lintIssues.isEmpty ? "checkmark.seal" : "exclamationmark.triangle")
                 }
-                .help("文档体检结果")
+                .accessibilityHint("文档体检结果")
             }
 
             // ── 右侧 · 导出与分享（流程末端） ──
@@ -219,7 +219,7 @@ struct DocumentScene: View {
                 } label: {
                     Label("导出", systemImage: "square.and.arrow.up")
                 }
-                .help("导出 PDF / HTML / 图片，或分享")
+                .accessibilityHint("导出 PDF / HTML / 图片，或分享")
             }
 
         
@@ -473,7 +473,7 @@ struct DocumentScene: View {
                     Text("⚠︎ \(lintIssues.count) 处提示").foregroundStyle(.orange)
                 }
                 .buttonStyle(.plain)
-                .help("点击查看文档体检结果")
+                .accessibilityHint("点击查看文档体检结果")
             }
         }
         .font(.footnote)
